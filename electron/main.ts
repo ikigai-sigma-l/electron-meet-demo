@@ -69,10 +69,9 @@ app.on('before-quit', () => {
 app.whenReady().then(() => {
   createWindow()
 
-  // The renderer's getDisplayMedia() call (triggered by the screen-share button in
-  // @livekit/components-react) has no browser chrome to show a source picker, so we
-  // intercept it here, ask the renderer to render its own picker, and resolve once
-  // the user chooses a source.
+  // The renderer's getDisplayMedia() call (triggered automatically once the app joins
+  // the room) has no browser chrome to show a source picker, so we intercept it here,
+  // ask the renderer to render its own picker, and resolve once the user chooses a source.
   session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
     // Electron's native binding throws synchronously if `video` was requested but the
     // callback doesn't provide a stream, so there's no clean "deny" path when the user

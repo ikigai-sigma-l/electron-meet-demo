@@ -6,7 +6,7 @@ interface DesktopSource {
   thumbnailDataUrl: string
 }
 
-export default function DesktopSourcePicker() {
+export default function DesktopSourcePicker({ onSourceChosen }: { onSourceChosen?: () => void }) {
   const [sources, setSources] = useState<DesktopSource[] | null>(null)
 
   useEffect(() => {
@@ -35,6 +35,7 @@ export default function DesktopSourcePicker() {
   const select = (id: string | null) => {
     window.ipcRenderer.send('desktop-capturer-source-selected', id)
     setSources(null)
+    if (id) onSourceChosen?.()
   }
 
   return (

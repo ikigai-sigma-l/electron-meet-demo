@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { LiveKitRoom, VideoConference } from '@livekit/components-react'
-import { TokenSource } from 'livekit-client'
+import { useEffect, useState } from 'react'
+import { LiveKitRoom, useLocalParticipant, useRoomContext } from '@livekit/components-react'
+import { Room, TokenSource } from 'livekit-client'
 import '@livekit/components-styles'
 import DesktopSourcePicker from './DesktopSourcePicker'
 
@@ -61,8 +61,61 @@ function JoinForm({ onJoin }: { onJoin: (creds: RoomCredentials) => void }) {
   )
 }
 
+/**
+ * Renders only the interactive source picker while a screen share hasn't been
+ * published yet (auto-triggered by the `screen` prop on <LiveKitRoom>, see below —
+ * NOT called imperatively here, to avoid racing LiveKitRoom's own on-connect publish
+ * logic), and a single stop button once it has. A watchdog disconnects the room if
+ * sharing hasn't started within a reasonable time (e.g. picker cancelled, no
+ * permission) — LiveKitRoom's onError prop handles the case where it fails outright.
+ */
+function ScreenShareSession() {
+  const room = useRoomContext()
+  const { isScreenShareEnabled } = useLocalParticipant()
+  const [isPublishing, setIsPublishing] = useState(false)
+
+  useEffect(() => {
+    if (isScreenShareEnabled) return
+    const timeout = setTimeout(() => {
+      console.error('[screen-share] timed out waiting for screen share to start')
+      room.disconnect()
+    }, 20_000)
+    return () => clearTimeout(timeout)
+  }, [room, isScreenShareEnabled])
+
+  const handleStop = async () => {
+    await room.localParticipant.setScreenShareEnabled(false)
+    await room.disconnect()
+  }
+
+  if (!isScreenShareEnabled) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p>{isPublishing ? '已選擇畫面，正在建立分享連線...' : '正在選擇要分享的畫面...'}</p>
+        <DesktopSourcePicker
+          onSourceChosen={() => {
+            console.log('[screen-share] source chosen, awaiting publish...')
+            setIsPublishing(true)
+          }}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <button onClick={handleStop} style={{ fontSize: 24, padding: '24px 48px' }}>
+        結束分享並離開會議室
+      </button>
+    </div>
+  )
+}
+
 export default function App() {
   const [credentials, setCredentials] = useState<RoomCredentials | null>(null)
+  // Created ourselves (rather than letting <LiveKitRoom> create one internally) so
+  // onError below can call room.disconnect() directly.
+  const [room] = useState(() => new Room())
 
   if (!credentials) {
     return <JoinForm onJoin={setCredentials} />
@@ -70,17 +123,22 @@ export default function App() {
 
   return (
     <LiveKitRoom
+      room={room}
       serverUrl={credentials.serverUrl}
       token={credentials.token}
       connect
-      audio
-      video
+      audio={false}
+      video={false}
+      screen
+      onError={(err) => {
+        console.error('[screen-share] failed to start:', err)
+        room.disconnect()
+      }}
       data-lk-theme="default"
       style={{ height: '100vh' }}
       onDisconnected={() => setCredentials(null)}
     >
-      <VideoConference />
-      <DesktopSourcePicker />
+      <ScreenShareSession />
     </LiveKitRoom>
   )
 }
