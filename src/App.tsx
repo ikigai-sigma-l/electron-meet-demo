@@ -7,7 +7,7 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 export default function App() {
-  const { status, error, start, stop } = useScreenShare('http://192.168.20.22:1985/rtc/v1/whip/?app=live&stream=room1')
+  const { status, error, start, stop } = useScreenShare('http://192.168.20.38:8889/room1/whip')
 
   return (
     <div
