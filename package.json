@@ -1,7 +1,7 @@
 {
   "name": "electron-vite-project",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,7 +13,7 @@
     "@types/react-dom": "^19.2.4",
     "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^5.2.0",
-    "electron": "^30.0.1",
+    "electron": "castlabs/electron-releases#v43.2.0+wvcus",
     "electron-builder": "^24.13.3",
     "typescript": "^5.2.2",
     "vite": "^5.1.6",

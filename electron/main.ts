@@ -88,6 +88,12 @@ app.whenReady().then(() => {
     desktopCapturer
       .getSources({ types: ['screen', 'window'], thumbnailSize: { width: 300, height: 200 } })
       .then((sources) => {
+        // The requesting frame may have navigated away or been destroyed by the time
+        // sources finish listing — nothing to send the picker to in that case.
+        if (!request.frame) {
+          denyRequest()
+          return
+        }
         request.frame.send(
           'desktop-capturer-sources',
           sources.map((source) => ({
@@ -113,7 +119,7 @@ app.whenReady().then(() => {
         if (process.platform === 'darwin') {
           shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture')
         }
-        request.frame.send('desktop-capturer-permission-denied')
+        request.frame?.send('desktop-capturer-permission-denied')
         denyRequest()
       })
   })

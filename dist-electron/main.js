@@ -1,10 +1,10 @@
-import { app as o, BrowserWindow as l, session as _, desktopCapturer as h, ipcMain as w, shell as v } from "electron";
+import { app as t, BrowserWindow as l, session as _, desktopCapturer as h, ipcMain as w, shell as v } from "electron";
 import { fileURLToPath as E } from "node:url";
 import n from "node:path";
 const m = n.dirname(E(import.meta.url));
 process.env.APP_ROOT = n.join(m, "..");
-const i = process.env.VITE_DEV_SERVER_URL, S = n.join(process.env.APP_ROOT, "dist-electron"), f = n.join(process.env.APP_ROOT, "dist");
-process.env.VITE_PUBLIC = i ? n.join(process.env.APP_ROOT, "public") : f;
+const a = process.env.VITE_DEV_SERVER_URL, S = n.join(process.env.APP_ROOT, "dist-electron"), f = n.join(process.env.APP_ROOT, "dist");
+process.env.VITE_PUBLIC = a ? n.join(process.env.APP_ROOT, "public") : f;
 let e;
 function u() {
   e = new l({
@@ -14,43 +14,48 @@ function u() {
     }
   }), e.webContents.on("did-finish-load", () => {
     e == null || e.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
-  }), i ? e.loadURL(i) : e.loadFile(n.join(f, "index.html"));
+  }), a ? e.loadURL(a) : e.loadFile(n.join(f, "index.html"));
 }
-o.on("window-all-closed", () => {
-  process.platform !== "darwin" && (o.quit(), e = null);
+t.on("window-all-closed", () => {
+  process.platform !== "darwin" && (t.quit(), e = null);
 });
-o.on("activate", () => {
+t.on("activate", () => {
   l.getAllWindows().length === 0 && u();
 });
-o.on("before-quit", () => {
+t.on("before-quit", () => {
 });
-o.whenReady().then(() => {
-  u(), _.defaultSession.setDisplayMediaRequestHandler((r, a) => {
-    const p = () => {
+t.whenReady().then(() => {
+  u(), _.defaultSession.setDisplayMediaRequestHandler((i, p) => {
+    const r = () => {
       try {
-        a({});
+        p({});
       } catch {
       }
     };
-    h.getSources({ types: ["screen", "window"], thumbnailSize: { width: 300, height: 200 } }).then((t) => {
-      r.frame.send(
+    h.getSources({ types: ["screen", "window"], thumbnailSize: { width: 300, height: 200 } }).then((s) => {
+      if (!i.frame) {
+        r();
+        return;
+      }
+      i.frame.send(
         "desktop-capturer-sources",
-        t.map((s) => ({
-          id: s.id,
-          name: s.name,
-          thumbnailDataUrl: s.thumbnail.toDataURL()
+        s.map((o) => ({
+          id: o.id,
+          name: o.name,
+          thumbnailDataUrl: o.thumbnail.toDataURL()
         }))
-      ), w.once("desktop-capturer-source-selected", (s, c) => {
-        const d = c ? t.find((R) => R.id === c) : void 0;
-        d ? a({ video: d }) : p();
+      ), w.once("desktop-capturer-source-selected", (o, c) => {
+        const d = c ? s.find((R) => R.id === c) : void 0;
+        d ? p({ video: d }) : r();
       });
-    }).catch((t) => {
-      console.error("Failed to list desktop capturer sources:", t), process.platform === "darwin" && v.openExternal("x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"), r.frame.send("desktop-capturer-permission-denied"), p();
+    }).catch((s) => {
+      var o;
+      console.error("Failed to list desktop capturer sources:", s), process.platform === "darwin" && v.openExternal("x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"), (o = i.frame) == null || o.send("desktop-capturer-permission-denied"), r();
     });
   });
 });
 export {
   S as MAIN_DIST,
   f as RENDERER_DIST,
-  i as VITE_DEV_SERVER_URL
+  a as VITE_DEV_SERVER_URL
 };
