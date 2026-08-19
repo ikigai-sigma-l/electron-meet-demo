@@ -54,6 +54,11 @@
     "target": [
       "AppImage"
     ],
-    "artifactName": "${productName}-Linux-${version}.${ext}"
+    "artifactName": "${productName}-Linux-${version}.${ext}",
+    // Without this, electron-builder falls back to package.json's "name"
+    // (electron-vite-project) for the actual binary inside the AppImage,
+    // instead of productName — confusing in `ps`/`top` output and in the
+    // AppRun script's own path resolution.
+    "executableName": "ikg-gpc-screen"
   }
 }
