@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
-import { attachScreenShare, SCREEN_SHARE_CONFIG } from './webrtc'
-import type { ScreenShareHandle } from './webrtc'
+import { attachScreenShare } from './attachScreenShare'
+import { SCREEN_SHARE_CONFIG } from './config'
+import type { ScreenShareHandle } from './types'
 
 export type ScreenShareStatus = 'idle' | 'picking' | 'connecting' | 'sharing'
 

@@ -1,5 +1,4 @@
-import DesktopSourcePicker from './DesktopSourcePicker'
-import { useScreenShare } from './useScreenShare'
+import { DesktopSourcePicker, useScreenShare } from './screenShare'
 
 const STATUS_LABEL: Record<string, string> = {
   picking: '請選擇要分享的畫面...',
