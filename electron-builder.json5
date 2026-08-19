@@ -4,15 +4,6 @@
   "appId": "team.ikigai.gpc-screen",
   "asar": true,
   "productName": "ikg-gpc-screen",
-  // Using the castLabs fork of Electron (see package.json's "electron" dependency) for
-  // proprietary codec (H.264) support in WebRTC — electron-builder must download the
-  // packaged binary from the same mirror, not the official electron/electron releases.
-  // The trailing "v" is deliberate: unlike its built-in handling of the official mirror,
-  // electron-builder does not insert a "v" before the version for a custom mirror, so it
-  // has to already be part of the mirror string (yielding .../download/v43.2.0+wvcus/...).
-  "electronDownload": {
-    "mirror": "https://github.com/castlabs/electron-releases/releases/download/v"
-  },
   "directories": {
     "output": "release/${version}"
   },
