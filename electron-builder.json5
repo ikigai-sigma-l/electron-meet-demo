@@ -1,9 +1,9 @@
 // @see - https://www.electron.build/configuration/configuration
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
-  "appId": "YourAppID",
+  "appId": "team.ikigai.gpc-screen",
   "asar": true,
-  "productName": "YourAppName",
+  "productName": "ikg-gpc-screen",
   "directories": {
     "output": "release/${version}"
   },
@@ -15,7 +15,14 @@
     "target": [
       "dmg"
     ],
-    "artifactName": "${productName}-Mac-${version}-Installer.${ext}"
+    "artifactName": "${productName}-Mac-${version}-Installer.${ext}",
+    // Explicitly skip code signing (rather than leaving this unset, which lets
+    // electron-builder auto-discover any identity in the keychain, including the
+    // self-signed "ikg-gpc-screen Local Dev" one from earlier — see git history if
+    // signing needs to come back, e.g. for distributing outside this machine).
+    // "identity": null
+    "identity": "ikg-gpc-screen Local Dev",
+    "hardenedRuntime": false
   },
   "win": {
     "target": [
@@ -38,6 +45,11 @@
     "target": [
       "AppImage"
     ],
-    "artifactName": "${productName}-Linux-${version}.${ext}"
+    "artifactName": "${productName}-Linux-${version}.${ext}",
+    // Without this, electron-builder falls back to package.json's "name"
+    // (electron-vite-project) for the actual binary inside the AppImage,
+    // instead of productName — confusing in `ps`/`top` output and in the
+    // AppRun script's own path resolution.
+    "executableName": "ikg-gpc-screen"
   }
 }

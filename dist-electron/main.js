@@ -1,56 +1,66 @@
-import { app as o, BrowserWindow as l, session as _, desktopCapturer as h, ipcMain as w, shell as v } from "electron";
+import { session as R, desktopCapturer as h, ipcMain as w, shell as v, app as s, BrowserWindow as d } from "electron";
 import { fileURLToPath as E } from "node:url";
 import n from "node:path";
+function P() {
+  R.defaultSession.setDisplayMediaRequestHandler((r, a) => {
+    const t = () => {
+      try {
+        a({});
+      } catch {
+      }
+    };
+    h.getSources({ types: ["screen", "window"], thumbnailSize: { width: 300, height: 200 } }).then((i) => {
+      if (!r.frame) {
+        t();
+        return;
+      }
+      r.frame.send(
+        "desktop-capturer-sources",
+        i.map((o) => ({
+          id: o.id,
+          name: o.name,
+          thumbnailDataUrl: o.thumbnail.toDataURL()
+        }))
+      ), w.once("desktop-capturer-source-selected", (o, p) => {
+        const l = p ? i.find((_) => _.id === p) : void 0;
+        l ? a({ video: l }) : t();
+      });
+    }).catch((i) => {
+      var o;
+      console.error("Failed to list desktop capturer sources:", i), process.platform === "darwin" && v.openExternal("x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"), (o = r.frame) == null || o.send("desktop-capturer-permission-denied"), t();
+    });
+  });
+}
 const m = n.dirname(E(import.meta.url));
 process.env.APP_ROOT = n.join(m, "..");
-const i = process.env.VITE_DEV_SERVER_URL, S = n.join(process.env.APP_ROOT, "dist-electron"), f = n.join(process.env.APP_ROOT, "dist");
-process.env.VITE_PUBLIC = i ? n.join(process.env.APP_ROOT, "public") : f;
+const c = process.env.VITE_DEV_SERVER_URL, D = n.join(process.env.APP_ROOT, "dist-electron"), f = n.join(process.env.APP_ROOT, "dist");
+process.env.VITE_PUBLIC = c ? n.join(process.env.APP_ROOT, "public") : f;
 let e;
 function u() {
-  e = new l({
+  e = new d({
     icon: n.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
       preload: n.join(m, "preload.mjs")
     }
   }), e.webContents.on("did-finish-load", () => {
     e == null || e.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
-  }), i ? e.loadURL(i) : e.loadFile(n.join(f, "index.html"));
+  }), e.webContents.on("console-message", (r, a, t) => {
+    console.log("[renderer]", t);
+  }), c ? e.loadURL(c) : e.loadFile(n.join(f, "index.html"));
 }
-o.on("window-all-closed", () => {
-  process.platform !== "darwin" && (o.quit(), e = null);
+s.on("window-all-closed", () => {
+  process.platform !== "darwin" && (s.quit(), e = null);
 });
-o.on("activate", () => {
-  l.getAllWindows().length === 0 && u();
+s.on("activate", () => {
+  d.getAllWindows().length === 0 && u();
 });
-o.on("before-quit", () => {
+s.on("before-quit", () => {
 });
-o.whenReady().then(() => {
-  u(), _.defaultSession.setDisplayMediaRequestHandler((r, a) => {
-    const p = () => {
-      try {
-        a({});
-      } catch {
-      }
-    };
-    h.getSources({ types: ["screen", "window"], thumbnailSize: { width: 300, height: 200 } }).then((t) => {
-      r.frame.send(
-        "desktop-capturer-sources",
-        t.map((s) => ({
-          id: s.id,
-          name: s.name,
-          thumbnailDataUrl: s.thumbnail.toDataURL()
-        }))
-      ), w.once("desktop-capturer-source-selected", (s, c) => {
-        const d = c ? t.find((R) => R.id === c) : void 0;
-        d ? a({ video: d }) : p();
-      });
-    }).catch((t) => {
-      console.error("Failed to list desktop capturer sources:", t), process.platform === "darwin" && v.openExternal("x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"), r.frame.send("desktop-capturer-permission-denied"), p();
-    });
-  });
+s.whenReady().then(() => {
+  u(), P();
 });
 export {
-  S as MAIN_DIST,
+  D as MAIN_DIST,
   f as RENDERER_DIST,
-  i as VITE_DEV_SERVER_URL
+  c as VITE_DEV_SERVER_URL
 };
